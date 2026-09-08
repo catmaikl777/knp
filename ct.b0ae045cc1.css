@@ -9,7 +9,7 @@ html, body {
     height: 100vh;
 }
 ::selection {
-    background-color: #BD733B;
+    background-color: #050091;
 }
 #ct {
     position: relative;
@@ -27,7 +27,7 @@ html, body {
     top: 0;
     bottom: 0;
     background: #446adb;
-    background: #BD733B;
+    background: #050091;
     color: #ffffff;
     color: #ffffff;
     z-index: 2;

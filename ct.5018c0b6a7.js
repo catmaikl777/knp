@@ -3451,7 +3451,7 @@ if (this.light) {
         ["H3FrMjMCdb9FB2.xml"]
       ][0];
       const tiledImages = [
-        {"Placeholder":{"source":"./img/t0.e1a0b4434a.{webp,png}","shape":{"type":"rect","top":0,"bottom":64,"left":0,"right":64},"anchor":{"x":0,"y":0}}}
+        {"Placeholder":{"source":"./img/t0.e1a0b4434a.{webp,png}","shape":{"type":"rect","top":64,"bottom":0,"left":32,"right":32},"anchor":{"x":0.5,"y":1}}}
       ][0];
       if (settings.isDebug) {
         atlases = atlases.map((atlas) => atlas + "?q=" + Date.now());
@@ -4383,13 +4383,13 @@ for (const p of pointer.hover) {
 inputs.registry['pointer.Wheel'] = 0;
 pointer.clearReleased();
 pointer.xmovement = pointer.ymovement = 0;
-keyboard.clear();
 if (this === rooms.current) {
     (function ctLightRender() {
         light.update();
         light.render();
     })();
 }
+keyboard.clear();
 
         if (this.behaviors.length) {
           runBehaviors(this, "rooms", "thisOnDraw");
@@ -5797,7 +5797,7 @@ templates.templates["default-player"] = {
 let spawnX, gapOffset, pipeOffset;
 this.move();
 if ((gameover === false)) {
-    this.x = (this.x + this.hspeed);
+    this.x = ((this.x + this.hspeed) * 1);
 this.vspeed = (this.vspeed + grav);
 grav += 2;
 this.angle = ((grav - 45) * Math.sign(this.hspeed));
@@ -5946,6 +5946,37 @@ if (!isEvenBounce) {
 }
 
 console.log('===== КОНЕЦ ОТСКОКА =====\n');
+
+}
+if (((this.y < camera.top) || place.meet(this, this.x, this.y, 'ground'))) {
+    window._bounceCount = 0
+gameover = true;
+if (!sounds.playing('hit')) {
+    sounds.play('hit', {
+volume: 1
+});
+}
+this.vspeed = 0;
+u.wait(1500)
+                    .then(() => {
+                        sounds.play('die');
+if (window.loaded == true) {
+    let playerName = N || localStorage.getItem('playerName') || 'Игрок';
+    let score = highScore || 0;
+    if (score > 0) {
+        window.saveScoreFirebase(playerName, score);
+    }
+}
+
+window.loaded = true
+transition.circleIn(0.5, 0)
+                        .then(() => {
+                            rooms.switch('gameover');
+                        });
+
+                    }).catch(() => {
+                        
+                    });
 
 }
 /* РЕКОРД */
@@ -6112,14 +6143,14 @@ function updateSpeed() {
 // ============================================================
 
 function spawnBonuses() {
-    if (Math.random() > 0.05) return;
+    if (Math.random() > 0.02) return;
     
     let totalBonuses = 
         (templates.list['BonusShield'] || []).length +
         (templates.list['BonusDouble'] || []).length +
         (templates.list['BonusSlowMo'] || []).length +
         (templates.list['BonusMagnet'] || []).length;
-    if (totalBonuses >= 3) return;
+    if (totalBonuses >= 8) return;
     
     let bonusTemplates = ['BonusShield', 'BonusDouble', 'BonusSlowMo', 'BonusMagnet'];
     let templateName = bonusTemplates[Math.floor(Math.random() * bonusTemplates.length)];
@@ -6173,6 +6204,21 @@ function updateBonuses() {
         }
         if (u.time - bonus.born > bonus.lifetime - 1.5) {
             bonus.alpha = 0.3 + Math.sin(u.time * 20) * 0.3;
+        }
+        // Получаем все трубы (верхние и нижние)
+        let pipes = [
+            'pipe-up',
+            'pipe-bottom',
+            'pipe-up_2',
+            'pipe-bottom_2',
+        ];
+
+        // Проверяем столкновение с каждой трубой
+        for (let pipe of pipes) {
+            if (place.meet(bonus, NaN, NaN, pipe)) {
+                bonus.kill = true; // уничтожаем бонус при касании трубы
+                break;
+            }
         }
     }
 }
@@ -6506,9 +6552,9 @@ u.wait(270)
 
     },
     extends: {
-    "cgroup": "Obstacle",
+    "cgroup": "ultraObst",
     "editor:myCollidingCGroups": [
-        "Obstacle"
+        "ultraObst"
     ]
 }
 };
@@ -7141,7 +7187,7 @@ templates.templates["topend"] = {
     visible: true,
     baseClass: "AnimatedSprite",
     
-            texture: -1,
+            texture: "Placeholder",
         animationFPS: 30,
         playAnimationOnStart: false,
         loopAnimation: true,
@@ -7150,6 +7196,15 @@ templates.templates["topend"] = {
         /* 🐱👉 template topend — On frame start event (core_OnStep) */
 {
 this.move();
+u.wait(277)
+                    .then(() => {
+                        this.x = camera.left;
+this.y = (camera.top - 57);
+
+                    }).catch(() => {
+                        
+                    });
+
 }
 
     },
@@ -7163,9 +7218,9 @@ this.move();
         
     },
     extends: {
-    "cgroup": "Obstacle",
+    "cgroup": "ultraObst",
     "editor:myCollidingCGroups": [
-        "Obstacle"
+        "ultraObst"
     ]
 }
 };
@@ -8329,7 +8384,7 @@ rooms.templates['Game'] = {
     width: 1280,
     height: 720,
     behaviors: JSON.parse('[]'),
-    objects: JSON.parse('[{"x":1024,"y":320,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1},"rotation":0,"exts":{},"customProperties":{},"template":"default-player"},{"x":653.47368512,"y":776.07444294,"opacity":1,"tint":16777215,"scale":{"x":2.46491228,"y":1.42910316},"rotation":0,"exts":{},"customProperties":{},"template":"ground"},{"x":192,"y":365,"opacity":1,"tint":16777215,"scale":{"x":0.09,"y":0.09},"rotation":0,"exts":{},"customProperties":{},"template":"Coin"},{"x":249,"y":17,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1},"rotation":0,"exts":{},"customProperties":{},"template":"score"},{"x":193,"y":38,"opacity":1,"tint":16777215,"scale":{"x":0.09,"y":0.09},"rotation":0,"exts":{},"customProperties":{},"template":"coin_2"},{"x":76,"y":640,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1.15533981},"rotation":0,"exts":{},"customProperties":{},"template":"pipe-bottom"},{"x":76,"y":95,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1.03559871},"rotation":0,"exts":{},"customProperties":{},"template":"pipe-up"},{"x":1280,"y":640,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1.15533981},"rotation":0,"exts":{},"customProperties":{},"template":"pipe-bottom_2"},{"x":1280,"y":95,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1.03559871},"rotation":0,"exts":{},"customProperties":{},"template":"pipe-up_2"},{"x":640,"y":-16,"opacity":1,"tint":16777215,"scale":{"x":40,"y":1},"rotation":0,"exts":{},"customProperties":{},"template":"topend"},{"x":0,"y":0,"opacity":1,"tint":16777215,"scale":{"x":1.1851851899999999,"y":1},"rotation":0,"exts":{},"customProperties":{},"template":"bg"}]'),
+    objects: JSON.parse('[{"x":1024,"y":320,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1},"rotation":0,"exts":{},"customProperties":{},"template":"default-player"},{"x":653.47368512,"y":776.07444294,"opacity":1,"tint":16777215,"scale":{"x":2.46491228,"y":1.42910316},"rotation":0,"exts":{},"customProperties":{},"template":"ground"},{"x":192,"y":365,"opacity":1,"tint":16777215,"scale":{"x":0.09,"y":0.09},"rotation":0,"exts":{},"customProperties":{},"template":"Coin"},{"x":249,"y":17,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1},"rotation":0,"exts":{},"customProperties":{},"template":"score"},{"x":193,"y":38,"opacity":1,"tint":16777215,"scale":{"x":0.09,"y":0.09},"rotation":0,"exts":{},"customProperties":{},"template":"coin_2"},{"x":76,"y":640,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1.15533981},"rotation":0,"exts":{},"customProperties":{},"template":"pipe-bottom"},{"x":76,"y":95,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1.03559871},"rotation":0,"exts":{},"customProperties":{},"template":"pipe-up"},{"x":1280,"y":640,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1.15533981},"rotation":0,"exts":{},"customProperties":{},"template":"pipe-bottom_2"},{"x":1280,"y":95,"opacity":1,"tint":16777215,"scale":{"x":1,"y":1.03559871},"rotation":0,"exts":{},"customProperties":{},"template":"pipe-up_2"},{"x":0,"y":0,"opacity":1,"tint":16777215,"scale":{"x":1.1851851899999999,"y":1},"rotation":0,"exts":{},"customProperties":{},"template":"bg"}]'),
     bgs: JSON.parse('[]'),
     tiles: JSON.parse('[]'),
     backgroundColor: '#000000',
@@ -8779,6 +8834,14 @@ if (("NAME" in localStorage)) {
 },
     bindings: {
     
+            /* Bindings at room ui for template 1zHhqD5GzwDMMc */
+            6: function () {
+                
+                this.visible = false;
+            
+                this.disabled = true;
+            
+            }
     }
 }
         
@@ -8884,20 +8947,31 @@ function setText(obj, text) {
 
 // Глобальные функции для кнопок
 window.createRoomHandler = function() {
+    // Если уже создана комната или идёт подключение — не создаём новую
+    if (window._roomId || window._isConnecting) {
+        return;
+    }
+    window._isConnecting = true;
     let statusText = templates.list['statusText']?.[0];
-    setText(statusText, 'Статус: Создание комнаты...');
+    if (statusText) statusText.text = 'Статус: Создание комнаты...';
 
     window.createRoomFirebase(function(roomId) {
         let roomIdDisplay = templates.list['roomIdDisplay']?.[0];
-        setText(roomIdDisplay, 'Код: ' + roomId);
-        setText(statusText, 'Статус: Ожидаем игрока...');
+        if (roomIdDisplay) roomIdDisplay.text = 'Код: ' + roomId;
+        if (statusText) statusText.text = 'Статус: Ожидаем игрока...';
 
         window._roomId = roomId;
         window._isHost = true;
+        window._isConnecting = false;
 
-        window.listenToRoomFirebase(roomId, true, function(opponentData, status) {
+        // Удаляем старый слушатель (если был)
+        if (window._roomListener) {
+            window._roomListener.off();
+        }
+        // Сохраняем новый слушатель и используем его
+        window._roomListener = window.listenToRoomFirebase(roomId, true, function(opponentData, status) {
             if (status === 'playing') {
-                setText(statusText, 'Статус: Игрок подключился!');
+                if (statusText) statusText.text = 'Статус: Игрок подключился!';
                 setTimeout(function() {
                     rooms.switch('GameMultiplayer');
                 }, 1000);
@@ -8907,26 +8981,37 @@ window.createRoomHandler = function() {
 };
 
 window.joinRoomHandler = function() {
+    if (window._roomId || window._isConnecting) {
+        return;
+    }
+    window._isConnecting = true;
     let statusText = templates.list['statusText']?.[0];
     let roomId = RID;
     if (!roomId || roomId === '0') {
-        setText(statusText, 'Статус: Введите код комнаты!');
+        if (statusText) statusText.text = 'Статус: Введите код комнаты!';
+        window._isConnecting = false;
         return;
     }
 
-    setText(statusText, 'Статус: Подключение...');
+    if (statusText) statusText.text = 'Статус: Подключение...';
 
     window.joinRoomFirebase(roomId, function(success) {
         if (success) {
             window._roomId = roomId;
             window._isHost = false;
-            setText(statusText, 'Статус: Подключено!');
-            window.listenToRoomFirebase(roomId, false, function() {});
+            window._isConnecting = false;
+            if (statusText) statusText.text = 'Статус: Подключено!';
+
+            if (window._roomListener) {
+                window._roomListener.off();
+            }
+            window._roomListener = window.listenToRoomFirebase(roomId, false, function() {});
             setTimeout(function() {
                 rooms.switch('GameMultiplayer');
             }, 1000);
         } else {
-            setText(statusText, 'Статус: Комната не найдена!');
+            if (statusText) statusText.text = 'Статус: Комната не найдена!';
+            window._isConnecting = false;
         }
     });
 };
